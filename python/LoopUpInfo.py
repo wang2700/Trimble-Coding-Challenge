@@ -26,6 +26,7 @@ def repairFields(fields:list) -> list:
     reg_str = [r'\d{4}-\d{2}-\d{2}', r'\w+', r'\w{2,}', r'[yn]', r'dogs|cats|both']
     for i in range(5):
         reg = re.compile(reg_str[i])
+        fields[i] = fields[i].strip()
         if (not reg.match(fields[i])):
             fields.insert(i, "N/A")
     fields = fields[0:5]
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     with open('../test.data', 'r') as fo:
         for line in fo:
             line = line[:-1]    # remove newline character
-            line = line.replace(' ', '')    #remove all white spaces
+            line = line.strip()
             #process the line if not start with # or empty
             if (not line.startswith('#') and not len(line) == 0):
                 fields = line.split(',')
