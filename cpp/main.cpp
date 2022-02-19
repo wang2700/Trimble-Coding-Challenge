@@ -7,6 +7,17 @@
 #include <vector>
 #include <map>
 
+std::string ltrim(const std::string& s)
+{
+  size_t start = s.find_first_not_of(" ");
+  return (start == std::string::npos) ? "" : s.substr(start);
+}
+
+void toLowerCase(std::string& s)
+{
+  std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+}
+
 class Data
 {
   public:
@@ -18,11 +29,12 @@ class Data
 
     Data(std::string input) {
       // use regular expression to verify the inputs
-      const char *regexStr[5] = {"[0-9]{4}-[0-9]{2}-[0-9]{2}", "[a-zA-Z]+", "[a-zA-Z]{2,}", "[yn]", "dogs|cats|both"};
+      const char *regexStr[5] = {"[0-9]{4}-[0-9]{2}-[0-9]{2}", "[a-zA-Z ]+", "[a-zA-Z]{2,}", "[yn]", "dogs|cats|both"};
       size_t pos = 0;
       std::string field;
       std::string delimiter = ",";
       int count = 0;
+      std::string fields[5] = {};
       while (count < 5)
       {
         // if string is empty, there missing fields
@@ -31,6 +43,7 @@ class Data
           //get the next field in input string
           pos = input.find(delimiter);
           field = input.substr(0, pos);
+          field = ltrim(field);
           // if the field match with the corresponding regex, remove the field from input string
           if (std::regex_match(field, std::regex(regexStr[count])))
           {
@@ -42,28 +55,14 @@ class Data
         } else {
           field = "N/A";
         }
-        
-        // depending on field location in the input string, assign to the appropriate field
-        switch (count)
-        {
-        case 0:
-          DoB = field;
-          break;
-        case 1:
-          name = field;
-          break;
-        case 2:
-          color = field;
-          break;
-        case 3:
-          likePeas = field.compare("y") == 0;
-          break;
-        case 4: 
-          dogsCats = field;
-          break;
-        }
+        fields[count] = field;
         count++;        
       }
+      DoB = fields[0];
+      name = fields[1];
+      color = fields[2];
+      likePeas = fields[3].compare("y") == 0;
+      dogsCats = fields[4];
     }
 
     void printData()
@@ -94,14 +93,14 @@ int main(int argc, char **argv)
   // import file line by line
   while (std::getline(file, line))
   {
-    line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end()); // remove whitespace
+    line = ltrim(line);
     // if the line is not empty and does not start with #
     if (!line.empty() && line.at(0) != '#')
     {
       Data data = Data(line); // initialize a data object
       dataStore.push_back(data);  // store the data to the back of the vector
       std::string key = data.name;  
-      key[0] = tolower(key[0]); //convert the first letter to lower case for allow for capitalized and not capitalized name
+      toLowerCase(key); //convert the first letter to lower case for allow for capitalized and not capitalized name
       dataLoc[key] = i; //store the location of the data in the vector with the name as key
       i++;
     }
@@ -135,7 +134,7 @@ int main(int argc, char **argv)
     std::cout << "Please enter the name you want to find: " << std::endl;
     std::getline(std::cin, input);
     // allow for capitalized and not capitalized name
-    input[0] = tolower(input[0]);
+    toLowerCase(input);
     if (dataLoc.find(input) == dataLoc.end())
     {
       std::cerr << "Unfortunately, the person you are looking up is not in the database, please try again.\n" << std::endl;
